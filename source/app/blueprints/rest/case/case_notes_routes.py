@@ -52,9 +52,9 @@ from app.schema.marshables import CaseNoteDirectorySchema
 from app.schema.marshables import CaseNoteRevisionSchema
 from app.schema.marshables import CaseNoteSchema
 from app.schema.marshables import CommentSchema
-from app.util import ac_api_case_requires
+from app.util import ac_requires_case_identifier
+from app.util import ac_api_requires
 from app.util import endpoint_deprecated
-from app.util import add_obj_history_entry
 from app.util import response_error
 from app.util import response_success
 
@@ -63,7 +63,8 @@ case_notes_rest_blueprint = Blueprint('case_notes_rest', __name__)
 
 
 @case_notes_rest_blueprint.route('/case/notes/<int:cur_id>', methods=['GET'])
-@ac_api_case_requires(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_note_detail(cur_id, caseid):
     """
     Returns a note and its comments
@@ -111,7 +112,8 @@ def case_note_detail(cur_id, caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/delete/<int:cur_id>', methods=['POST'])
-@ac_api_case_requires(CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_note_delete(cur_id, caseid):
 
     call_modules_hook('on_preload_note_delete', data=cur_id, caseid=caseid)
@@ -134,7 +136,8 @@ def case_note_delete(cur_id, caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/update/<int:cur_id>', methods=['POST'])
-@ac_api_case_requires(CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_note_save(cur_id, caseid):
     addnote_schema = CaseNoteSchema()
 
@@ -151,7 +154,8 @@ def case_note_save(cur_id, caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/<int:cur_id>/revisions/list', methods=['GET'])
-@ac_api_case_requires(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_note_list_history(cur_id, caseid):
     note_version_sc = CaseNoteRevisionSchema(many=True)
 
@@ -167,7 +171,8 @@ def case_note_list_history(cur_id, caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/<int:cur_id>/revisions/<int:revision_id>', methods=['GET'])
-@ac_api_case_requires(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_note_revision(cur_id, revision_id, caseid):
     note_version_sc = CaseNoteRevisionSchema()
 
@@ -184,7 +189,8 @@ def case_note_revision(cur_id, revision_id, caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/add', methods=['POST'])
-@ac_api_case_requires(CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_note_add(caseid):
     addnote_schema = CaseNoteSchema()
 
@@ -200,7 +206,8 @@ def case_note_add(caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/<int:cur_id>/revisions/<int:revision_id>/delete', methods=['POST'])
-@ac_api_case_requires(CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_note_revision_delete(cur_id, revision_id, caseid):
 
     try:
@@ -216,7 +223,8 @@ def case_note_revision_delete(cur_id, revision_id, caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/directories/add', methods=['POST'])
-@ac_api_case_requires(CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_directory_add(caseid):
     try:
 
@@ -242,7 +250,8 @@ def case_directory_add(caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/directories/update/<dir_id>', methods=['POST'])
-@ac_api_case_requires(CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_directory_update(dir_id, caseid):
     try:
 
@@ -275,7 +284,8 @@ def case_directory_update(dir_id, caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/directories/delete/<dir_id>', methods=['POST'])
-@ac_api_case_requires(CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_directory_delete(dir_id, caseid):
     try:
 
@@ -297,13 +307,15 @@ def case_directory_delete(dir_id, caseid):
 
 @case_notes_rest_blueprint.route('/case/notes/groups/list', methods=['GET'])
 @endpoint_deprecated('Use /case/notes/directories/filter', 'v2.4.0')
-@ac_api_case_requires(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_load_notes_groups(caseid):
     pass
 
 
 @case_notes_rest_blueprint.route('/case/notes/state', methods=['GET'])
-@ac_api_case_requires(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_notes_state(caseid):
     os = get_notes_state(caseid=caseid)
     if os:
@@ -313,7 +325,8 @@ def case_notes_state(caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/search', methods=['GET', 'POST'])
-@ac_api_case_requires(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_search_notes(caseid):
     search_input = request.args.get('search_input')
 
@@ -331,27 +344,31 @@ def case_search_notes(caseid):
 
 @case_notes_rest_blueprint.route('/case/notes/groups/add', methods=['POST'])
 @endpoint_deprecated('Use /case/notes/directories/add', 'v2.4.0')
-@ac_api_case_requires(CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_add_notes_groups(caseid):
     pass
 
 
 @case_notes_rest_blueprint.route('/case/notes/groups/delete/<int:cur_id>', methods=['POST'])
 @endpoint_deprecated('Use /case/notes/directories/delete/<ID>', 'v2.4.0')
-@ac_api_case_requires(CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_delete_notes_groups(cur_id, caseid):
     pass
 
 
 @case_notes_rest_blueprint.route('/case/notes/groups/<int:cur_id>', methods=['GET'])
 @endpoint_deprecated('Use /case/notes/directories/<ID>', 'v2.4.0')
-@ac_api_case_requires(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_get_notes_group(cur_id, caseid):
     pass
 
 
 @case_notes_rest_blueprint.route('/case/notes/directories/filter', methods=['GET'])
-@ac_api_case_requires(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_filter_notes_directories(caseid):
 
     if not get_case(caseid=caseid):
@@ -364,13 +381,15 @@ def case_filter_notes_directories(caseid):
 
 @case_notes_rest_blueprint.route('/case/notes/groups/update/<int:cur_id>', methods=['POST'])
 @endpoint_deprecated('Use /case/notes/directories/update/<ID>', 'v2.4.0')
-@ac_api_case_requires(CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_edit_notes_groups(cur_id, caseid):
     pass
 
 
 @case_notes_rest_blueprint.route('/case/notes/<int:cur_id>/comments/list', methods=['GET'])
-@ac_api_case_requires(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_comment_note_list(cur_id, caseid):
 
     note_comments = get_case_note_comments(cur_id)
@@ -381,7 +400,8 @@ def case_comment_note_list(cur_id, caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/<int:cur_id>/comments/add', methods=['POST'])
-@ac_api_case_requires(CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_comment_note_add(cur_id, caseid):
 
     try:
@@ -417,7 +437,8 @@ def case_comment_note_add(cur_id, caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/<int:cur_id>/comments/<int:com_id>', methods=['GET'])
-@ac_api_case_requires(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_comment_note_get(cur_id, com_id, caseid):
 
     comment = get_case_note_comment(cur_id, com_id)
@@ -428,14 +449,16 @@ def case_comment_note_get(cur_id, com_id, caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/<int:cur_id>/comments/<int:com_id>/edit', methods=['POST'])
-@ac_api_case_requires(CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_comment_note_edit(cur_id, com_id, caseid):
 
     return case_comment_update(com_id, 'notes', caseid)
 
 
 @case_notes_rest_blueprint.route('/case/notes/<int:cur_id>/comments/<int:com_id>/delete', methods=['POST'])
-@ac_api_case_requires(CaseAccessLevel.full_access)
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
 def case_comment_note_delete(cur_id, com_id, caseid):
 
     success, msg = delete_note_comment(cur_id, com_id)
