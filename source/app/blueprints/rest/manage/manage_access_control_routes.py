@@ -17,7 +17,6 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 from flask import Blueprint
-from flask import render_template
 
 from app.iris_engine.access_control.utils import ac_recompute_all_users_effective_ac
 from app.iris_engine.access_control.utils import ac_recompute_effective_ac
@@ -57,12 +56,3 @@ def manage_ac_audit_user(cur_id):
     }
 
     return response_success(data=user_audit)
-
-
-@manage_ac_rest_blueprint.route('/manage/access-control/audit/users/<int:cur_id>/modal', methods=['GET'])
-@ac_api_requires(Permissions.server_administrator)
-def manage_ac_audit_user_modal(cur_id):
-    access_audit = ac_trace_user_effective_cases_access_2(cur_id)
-    permissions_audit = ac_trace_effective_user_permissions(cur_id)
-
-    return render_template("modal_user_audit.html", access_audit=access_audit, permissions_audit=permissions_audit)
