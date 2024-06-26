@@ -54,7 +54,7 @@ from app.schema.marshables import CaseNoteSchema
 from app.schema.marshables import CommentSchema
 from app.util import ac_requires_case_identifier
 from app.util import ac_api_requires
-from app.util import endpoint_deprecated
+from app.util import endpoint_removed
 from app.util import response_error
 from app.util import response_success
 
@@ -306,7 +306,7 @@ def case_directory_delete(dir_id, caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/groups/list', methods=['GET'])
-@endpoint_deprecated('Use /case/notes/directories/filter', 'v2.4.0')
+@endpoint_removed('Use /case/notes/directories/filter', 'v2.4.0')
 @ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
 @ac_api_requires()
 def case_load_notes_groups(caseid):
@@ -343,7 +343,7 @@ def case_search_notes(caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/groups/add', methods=['POST'])
-@endpoint_deprecated('Use /case/notes/directories/add', 'v2.4.0')
+@endpoint_removed('Use /case/notes/directories/add', 'v2.4.0')
 @ac_requires_case_identifier(CaseAccessLevel.full_access)
 @ac_api_requires()
 def case_add_notes_groups(caseid):
@@ -351,7 +351,7 @@ def case_add_notes_groups(caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/groups/delete/<int:cur_id>', methods=['POST'])
-@endpoint_deprecated('Use /case/notes/directories/delete/<ID>', 'v2.4.0')
+@endpoint_removed('Use /case/notes/directories/delete/<ID>', 'v2.4.0')
 @ac_requires_case_identifier(CaseAccessLevel.full_access)
 @ac_api_requires()
 def case_delete_notes_groups(cur_id, caseid):
@@ -359,7 +359,7 @@ def case_delete_notes_groups(cur_id, caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/groups/<int:cur_id>', methods=['GET'])
-@endpoint_deprecated('Use /case/notes/directories/<ID>', 'v2.4.0')
+@endpoint_removed('Use /case/notes/directories/<ID>', 'v2.4.0')
 @ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
 @ac_api_requires()
 def case_get_notes_group(cur_id, caseid):
@@ -380,7 +380,7 @@ def case_filter_notes_directories(caseid):
 
 
 @case_notes_rest_blueprint.route('/case/notes/groups/update/<int:cur_id>', methods=['POST'])
-@endpoint_deprecated('Use /case/notes/directories/update/<ID>', 'v2.4.0')
+@endpoint_removed('Use /case/notes/directories/update/<ID>', 'v2.4.0')
 @ac_requires_case_identifier(CaseAccessLevel.full_access)
 @ac_api_requires()
 def case_edit_notes_groups(cur_id, caseid):
