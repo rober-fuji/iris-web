@@ -54,10 +54,7 @@ from app.business.iocs import update
 from app.business.iocs import delete
 from app.business.errors import BusinessProcessingError
 
-case_ioc_rest_blueprint = Blueprint(
-    'case_ioc_rest',
-    __name__,
-)
+case_ioc_rest_blueprint = Blueprint('case_ioc_rest', __name__)
 
 
 @case_ioc_rest_blueprint.route('/case/ioc/list', methods=['GET'])
