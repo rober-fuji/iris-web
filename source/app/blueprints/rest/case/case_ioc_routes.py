@@ -27,7 +27,7 @@ from flask_login import current_user
 
 from app import db
 from app.blueprints.case.case_comments import case_comment_update
-from app.blueprints.rest.endpoints import endpoint_deprecated
+from app.blueprints.rest.endpoints import endpoint_deprecated, response_created, response_failed
 from app.datamgmt.case.case_iocs_db import add_comment_to_ioc
 from app.datamgmt.case.case_iocs_db import add_ioc
 from app.datamgmt.case.case_iocs_db import add_ioc_link
@@ -96,7 +96,7 @@ def case_ioc_state(caseid):
 
 
 @case_ioc_rest_blueprint.route('/case/ioc/add', methods=['POST'])
-@endpoint_deprecated('POST', '/api/v2/cases/{identifier}/iocs')
+@endpoint_deprecated('POST', '/api/v2/cases/<int:caseid>/iocs')
 @ac_requires_case_identifier(CaseAccessLevel.full_access)
 @ac_api_requires()
 def api_case_add_ioc(caseid):
@@ -109,17 +109,17 @@ def api_case_add_ioc(caseid):
         return response_error(e.get_message(), data=e.get_data())
 
 
-@case_ioc_rest_blueprint.route('/api/v2/cases/{identifier}/iocs', methods=['POST'])
+@case_ioc_rest_blueprint.route('/api/v2/cases/<int:caseid>/iocs', methods=['POST'])
 @ac_requires_case_identifier(CaseAccessLevel.full_access)
 @ac_api_requires()
 def case_add_ioc(caseid):
     ioc_schema = IocSchema()
 
     try:
-        ioc, msg = create(request.get_json(), caseid)
-        return response_success(msg, data=ioc_schema.dump(ioc))
+        ioc, _ = create(request.get_json(), caseid)
+        return response_created(ioc_schema.dump(ioc))
     except BusinessProcessingError as e:
-        return response_error(e.get_message(), data=e.get_data())
+        return response_failed(e.get_message())
 
 
 @case_ioc_rest_blueprint.route('/case/ioc/upload', methods=['POST'])
