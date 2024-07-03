@@ -27,6 +27,12 @@ from sqlalchemy import and_
 from app import db
 from app import app
 from app.blueprints.case.case_comments import case_comment_update
+from app.business.errors import BusinessProcessingError
+from app.business.notes import update
+from app.business.notes import create
+from app.business.notes import list_note_revisions
+from app.business.notes import get_note_revision
+from app.business.notes import delete_note_revision
 from app.datamgmt.case.case_db import get_case
 from app.datamgmt.case.case_notes_db import add_comment_to_note
 from app.datamgmt.case.case_notes_db import get_directories_with_note_count
@@ -43,12 +49,12 @@ from app.iris_engine.utils.tracker import track_activity
 from app.models import Notes
 from app.models.authorization import CaseAccessLevel
 from app.schema.marshables import CaseNoteDirectorySchema
+from app.schema.marshables import CaseNoteRevisionSchema
 from app.schema.marshables import CaseNoteSchema
 from app.schema.marshables import CommentSchema
 from app.util import ac_requires_case_identifier
 from app.util import ac_api_requires
 from app.util import endpoint_removed
-from app.util import add_obj_history_entry
 from app.util import response_error
 from app.util import response_success
 
@@ -133,70 +139,35 @@ def case_note_delete(cur_id, caseid):
 @ac_requires_case_identifier(CaseAccessLevel.full_access)
 @ac_api_requires()
 def case_note_save(cur_id, caseid):
+    addnote_schema = CaseNoteSchema()
 
     try:
-        # validate before saving
-        addnote_schema = CaseNoteSchema()
 
-        note = get_note(cur_id, caseid=caseid)
-        if not note:
-            return response_error("Invalid note ID for this case")
+        note = update(identifier=cur_id,
+                      request_json=request.get_json(),
+                      case_identifier=caseid)
 
-        request_data = call_modules_hook('on_preload_note_update', data=request.get_json(), caseid=caseid)
+        return response_success(f"Note ID {cur_id} saved", data=addnote_schema.dump(note))
 
-        request_data['note_id'] = cur_id
-        addnote_schema.load(request_data, partial=True, instance=note)
-        note.update_date = datetime.utcnow()
-        note.user_id = current_user.id
-
-        add_obj_history_entry(note, 'updated note', commit=True)
-        note = call_modules_hook('on_postload_note_update', data=note, caseid=caseid)
-
-    except marshmallow.exceptions.ValidationError as e:
-        return response_error(msg="Data error", data=e.messages)
-
-    track_activity(f"updated note \"{note.note_title}\"", caseid=caseid)
-    return response_success(f"Note ID {cur_id} saved", data=addnote_schema.dump(note))
+    except BusinessProcessingError as e:
+        return response_error(e.get_message(), data=e.get_data())
 
 
 @case_notes_rest_blueprint.route('/case/notes/add', methods=['POST'])
 @ac_requires_case_identifier(CaseAccessLevel.full_access)
 @ac_api_requires()
 def case_note_add(caseid):
+    addnote_schema = CaseNoteSchema()
+
     try:
-        # validate before saving
-        addnote_schema = CaseNoteSchema()
-        request_data = request.get_json()
 
-        if request_data.get('group_id'):
-            return response_error('Group ID is deprecated, please use directory_id instead')
+        note = create(request_json=request.get_json(),
+                      case_identifier=caseid)
 
-        request_data = call_modules_hook('on_preload_note_create', data=request.get_json(), caseid=caseid)
+        return response_success(f"Note ID {note.note_id} created", data=addnote_schema.dump(note))
 
-        addnote_schema.verify_directory_id(request_data, caseid=caseid)
-
-        new_note = addnote_schema.load(request_data)
-
-        new_note.note_creationdate = datetime.utcnow()
-        new_note.note_lastupdate = datetime.utcnow()
-        new_note.note_user = current_user.id
-        new_note.note_case_id = caseid
-
-        db.session.add(new_note)
-        db.session.commit()
-
-        add_obj_history_entry(new_note, 'created note', commit=True)
-
-        new_note = call_modules_hook('on_postload_note_create', data=new_note, caseid=caseid)
-
-        if new_note:
-            track_activity(f"added note \"{new_note.note_title}\"", caseid=caseid)
-            return response_success('Note added', data=addnote_schema.dump(new_note))
-
-        return response_error("Unable to create note for internal reasons")
-
-    except marshmallow.exceptions.ValidationError as e:
-        return response_error(msg="Data error", data=e.messages)
+    except BusinessProcessingError as e:
+        return response_error(e.get_message(), data=e.get_data())
 
 
 @case_notes_rest_blueprint.route('/case/notes/directories/add', methods=['POST'])
@@ -301,7 +272,7 @@ def case_notes_state(caseid):
         return response_error('No notes state for this case.')
 
 
-@case_notes_rest_blueprint.route('/case/notes/search', methods=['GET'])
+@case_notes_rest_blueprint.route('/case/notes/search', methods=['GET', 'POST'])
 @ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
 @ac_api_requires()
 def case_search_notes(caseid):
@@ -362,6 +333,7 @@ def case_filter_notes_directories(caseid):
 @ac_api_requires()
 def case_edit_notes_groups(cur_id, caseid):
     pass
+
 
 @case_notes_rest_blueprint.route('/case/notes/<int:cur_id>/comments/list', methods=['GET'])
 @ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
@@ -445,3 +417,55 @@ def case_comment_note_delete(cur_id, com_id, caseid):
 
     track_activity(f"comment {com_id} on note {cur_id} deleted", caseid=caseid)
     return response_success(msg)
+
+
+@case_notes_rest_blueprint.route('/case/notes/<int:cur_id>/revisions/list', methods=['GET'])
+@ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_api_requires()
+def case_note_list_history(cur_id, caseid):
+    note_version_sc = CaseNoteRevisionSchema(many=True)
+
+    try:
+
+        note_version = list_note_revisions(identifier=cur_id,
+                                           case_identifier=caseid)
+
+        return response_success(f"ok", data=note_version_sc.dump(note_version))
+
+    except BusinessProcessingError as e:
+        return response_error(e.get_message(), data=e.get_data())
+
+
+@case_notes_rest_blueprint.route('/case/notes/<int:cur_id>/revisions/<int:revision_id>', methods=['GET'])
+@ac_requires_case_identifier(CaseAccessLevel.read_only, CaseAccessLevel.full_access)
+@ac_api_requires()
+def case_note_revision(cur_id, revision_id, caseid):
+    note_version_sc = CaseNoteRevisionSchema()
+
+    try:
+
+        note_version = get_note_revision(identifier=cur_id,
+                                         revision_number=revision_id,
+                                         case_identifier=caseid)
+
+        return response_success(f"ok", data=note_version_sc.dump(note_version))
+
+    except BusinessProcessingError as e:
+        return response_error(e.get_message(), data=e.get_data())
+
+
+@case_notes_rest_blueprint.route('/case/notes/<int:cur_id>/revisions/<int:revision_id>/delete', methods=['POST'])
+@ac_requires_case_identifier(CaseAccessLevel.full_access)
+@ac_api_requires()
+def case_note_revision_delete(cur_id, revision_id, caseid):
+
+    try:
+
+        delete_note_revision(identifier=cur_id,
+                             revision_number=revision_id,
+                             case_identifier=caseid)
+
+        return response_success(f"Revision {revision_id} of note {cur_id} deleted")
+
+    except BusinessProcessingError as e:
+        return response_error(e.get_message(), data=e.get_data())

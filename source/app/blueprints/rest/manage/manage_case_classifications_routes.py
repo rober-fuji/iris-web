@@ -115,9 +115,6 @@ def update_case_classification(classification_id: int) -> Response:
 def add_case_classification() -> Response:
     """Add a case classification
 
-    Args:
-        caseid (int): case id
-
     Returns:
         Flask Response object
     """

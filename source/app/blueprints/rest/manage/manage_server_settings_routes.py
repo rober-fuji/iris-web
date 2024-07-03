@@ -20,6 +20,7 @@ import marshmallow
 from flask import Blueprint
 from flask import request
 
+import app
 from app import celery
 from app import db
 from app.datamgmt.manage.manage_srv_settings_db import get_srv_settings
@@ -80,7 +81,8 @@ def manage_update_settings():
 
         if srv_settings_sc:
             track_activity(f"Server settings updated: {changes}")
-            return response_success("Server settings updated", srv_settings_sc)
+            app.config['SERVER_SETTINGS'] = srv_settings_schema.dump(server_settings)
+            return response_success("Server settings updated", app.config['SERVER_SETTINGS'])
 
     except marshmallow.exceptions.ValidationError as e:
         return response_error(msg="Data error", data=e.messages)
