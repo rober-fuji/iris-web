@@ -20,7 +20,7 @@ import marshmallow
 from flask import Blueprint
 from flask import request
 
-import app
+from app import app
 from app import celery
 from app import db
 from app.datamgmt.manage.manage_srv_settings_db import get_srv_settings
@@ -78,7 +78,6 @@ def manage_update_settings():
                 setup_periodic_update_checks(celery)
             else:
                 remove_periodic_update_checks()
-
         if srv_settings_sc:
             track_activity(f"Server settings updated: {changes}")
             app.config['SERVER_SETTINGS'] = srv_settings_schema.dump(server_settings)
