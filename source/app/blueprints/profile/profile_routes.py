@@ -22,6 +22,7 @@ from flask import render_template
 from flask import url_for
 from flask_wtf import FlaskForm
 
+from app import app
 from app.datamgmt.manage.manage_srv_settings_db import get_srv_settings
 from app.util import ac_requires
 from app.util import endpoint_removed
@@ -37,7 +38,7 @@ def user_settings(caseid, url_redir):
     if url_redir:
         return redirect(url_for('profile.user_settings', cid=caseid))
 
-    return render_template('profile.html')
+    return render_template('profile.html', mfa_enabled=app.config.get('MFA_ENABLED', False))
 
 
 @profile_blueprint.route('/user/is-admin', methods=['GET'])
