@@ -156,3 +156,17 @@ class TestsRest(TestCase):
         test = self._subject.get_iocs(current_identifier, case_identifier)
         self.assertEqual(current_identifier, test['ioc_id'])
 
+    def test_add_task_should_return_201(self):
+        case = self._subject.create_case_deprecated()
+        case_identifier = case['case_id']
+        response = self._subject.add_tasks(case_identifier, {"task_assignees_id": [1], "task_description": "", "task_status_id": 1, "task_tags": "",
+                                                         "task_title": "dummy title", "custom_attributes": {}})
+        self.assertEqual(201, response.status_code)
+
+    def test_add_task_with_missing_task_title_identifier_should_return_400(self):
+        case = self._subject.create_case_deprecated()
+        case_identifier = case['case_id']
+        response = self._subject.add_tasks(case_identifier, {"task_assignees_id": [1], "task_description": "", "task_status_id": 1, "task_tags": "",
+                                                        "custom_attributes": {}})
+        self.assertEqual(400, response.status_code)
+

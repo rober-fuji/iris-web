@@ -153,3 +153,10 @@ class Iris:
 
     def delete_iocs(self, current_identifier, case_identifier):
         return self._api.delete(f'/api/v2/cases/{case_identifier}/iocs/{current_identifier}')
+
+    def add_tasks_deprecated(self, body):
+        return self._api.post(f'/case/tasks/add', body)
+
+    def add_tasks(self, case_identifier, body):
+        return self._api.post(f'/api/v2/cases/{case_identifier}/tasks',  body)
+
