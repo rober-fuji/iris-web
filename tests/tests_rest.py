@@ -138,7 +138,7 @@ class TestsRest(TestCase):
         case_identifier = case['case_id']
         response = self._subject.create_ioc_deprecated()
         current_identifier = response['ioc_id']
-        self._subject.delete_iocs(current_identifier, case_identifier)
+        self._subject.delete_iocs(current_identifier)
         test = self._subject.get_iocs(current_identifier, case_identifier)
         self.assertEqual('Invalid IOC ID for this case', test)
 
@@ -147,6 +147,6 @@ class TestsRest(TestCase):
         case_identifier = case['case_id']
         response = self._subject.create_ioc_deprecated()
         current_identifier = response['ioc_id']
-        self._subject.delete_iocs(None, case_identifier)
+        self._subject.delete_iocs(None)
         test = self._subject.get_iocs(current_identifier, case_identifier)
         self.assertEqual(current_identifier, test['ioc_id'])
