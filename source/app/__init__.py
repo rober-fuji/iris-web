@@ -26,7 +26,6 @@ from flask_bcrypt import Bcrypt
 from flask_caching import Cache
 from flask_login import LoginManager
 from flask_marshmallow import Marshmallow
-from flask_restx import Api
 from flask_socketio import SocketIO, Namespace
 from flask_sqlalchemy import SQLAlchemy
 from functools import partial
@@ -64,7 +63,6 @@ LOG_TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 logger.basicConfig(level=logger.INFO, format=LOG_FORMAT, datefmt=LOG_TIME_FORMAT)
 
 app = Flask(__name__)
-api = Api(app, endpoint="/", version='1.0', title='Sample API from elise', description='A sample API')
 
 
 def ac_current_user_has_permission(*permissions):
