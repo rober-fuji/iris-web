@@ -221,7 +221,6 @@ def _get_caseid_from_request_data(request_data, no_cid_required):
             return redir, caseid, True
 
         caseid = js_d.get('cid')
-        request_data.json.pop('cid')
 
         return False, caseid, True
 
@@ -621,6 +620,28 @@ def ac_requires_client_access():
     return inner_wrap
 
 
+def ac_requires_case_access(*access_level):
+    def decorate(f):
+        @wraps(f)
+        def wrap(*args, **kwargs):
+            try:
+                redir, caseid, has_access = get_case_access(request, access_level, from_api=True)
+            except Exception as e:
+                log.exception(e)
+                return response_error('Invalid data. Check server logs', status=500)
+
+            if not caseid and not redir:
+                return response_error('Invalid case ID', status=404)
+
+            if not has_access:
+                return ac_api_return_access_denied(caseid=caseid)
+
+            return f(*args, **kwargs)
+
+        return wrap
+    return decorate
+
+
 def ac_requires_case_identifier(*access_level):
     def decorate_with_requires_case_identifier(f):
         @wraps(f)
@@ -668,6 +689,10 @@ def ac_api_requires(*permissions):
     def inner_wrap(f):
         @wraps(f)
         def wrap(*args, **kwargs):
+            log.error('A---------------------------------------')
+            log.error(args)
+            log.error(kwargs)
+
             if not _is_csrf_token_valid():
                 return response_error('Invalid CSRF token')
 
@@ -679,6 +704,10 @@ def ac_api_requires(*permissions):
 
             if not _user_has_required_permissions(permissions):
                 return response_error('Permission denied', status=403)
+
+            log.error('B---------------------------------------')
+            log.error(args)
+            log.error(kwargs)
 
             return f(*args, **kwargs)
         return wrap
