@@ -49,7 +49,12 @@ from app.models.models import TaskStatus
 from app.models.models import UserActivity
 from app.schema.marshables import CaseTaskSchema, CaseSchema, CaseDetailsSchema
 from app.schema.marshables import GlobalTasksSchema
+<<<<<<< HEAD
 from app.util import ac_api_requires
+=======
+from app.util import ac_api_requires, regenerate_session
+from app.util import ac_requires_case_identifier
+>>>>>>> 52c04db5fbb32e8db5cd11e5788b0458a1ecc374
 from app.util import ac_requires
 from app.util import not_authenticated_redirection_url
 from app.util import response_error
@@ -88,7 +93,15 @@ def logout():
     except Exception as e:
             track_activity("error loging out. Probably session not initated properly.", ctx_less=True, display_in_ui=False)
 
+<<<<<<< HEAD
     return redirect('/login') #not_authenticated_redirection_url('/') #
+=======
+    track_activity("user '{}' has been logged-out".format(current_user.user), ctx_less=True, display_in_ui=False)
+    logout_user()
+    session.clear()
+
+    return redirect(not_authenticated_redirection_url('/'))
+>>>>>>> 52c04db5fbb32e8db5cd11e5788b0458a1ecc374
 
 
 @dashboard_blueprint.route('/dashboard/case_charts', methods=['GET'])

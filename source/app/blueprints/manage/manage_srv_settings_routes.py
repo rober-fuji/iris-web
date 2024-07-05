@@ -40,6 +40,8 @@ from app.util import ac_api_requires
 from app.util import ac_requires
 from app.util import response_error
 from app.util import response_success
+from dictdiffer import diff
+
 
 manage_srv_settings_blueprint = Blueprint(
     'manage_srv_settings_blueprint',
@@ -119,6 +121,12 @@ def manage_update_settings():
 
     try:
 
+        original_settings = srv_settings_schema.dump(server_settings)
+        new_settings = request.get_json()
+
+        differences = list(diff(original_settings, new_settings))
+        changes = [{difference[1]: difference[2]} for difference in differences if difference[0] == 'change']
+
         srv_settings_sc = srv_settings_schema.load(request.get_json(), instance=server_settings)
         db.session.commit()
 
@@ -129,8 +137,9 @@ def manage_update_settings():
                 remove_periodic_update_checks()
 
         if srv_settings_sc:
-            track_activity("Server settings updated")
-            return response_success("Server settings updated", srv_settings_sc)
+            track_activity(f"Server settings updated: {changes}")
+            app.config['SERVER_SETTINGS'] = srv_settings_schema.dump(server_settings)
+            return response_success("Server settings updated", app.config['SERVER_SETTINGS'])
 
     except marshmallow.exceptions.ValidationError as e:
         return response_error(msg="Data error", data=e.messages)
