@@ -24,13 +24,8 @@ import qrcode
 from urllib.parse import urlsplit
 
 # IMPORTS ------------------------------------------------
-<<<<<<< HEAD
 import os
-from flask import Blueprint
-=======
-
 from flask import Blueprint, flash
->>>>>>> 52c04db5fbb32e8db5cd11e5788b0458a1ecc374
 from flask import redirect
 from flask import render_template
 from flask import request
@@ -53,13 +48,10 @@ from app.iris_engine.access_control.oidc_proxy_handler import oidc_proxy_authent
 from app.iris_engine.access_control.utils import ac_get_effective_permissions_of_user
 from app.iris_engine.utils.tracker import track_activity
 from app.models.cases import Cases
-<<<<<<< HEAD
 from app.util import is_authentication_ldap
 from app.util import is_authentication_oidc_proxy
 from app.util import generate_random_pw
-=======
 from app.util import is_authentication_ldap, regenerate_session
->>>>>>> 52c04db5fbb32e8db5cd11e5788b0458a1ecc374
 from app.datamgmt.manage.manage_users_db import get_active_user_by_login
 from app.datamgmt.manage.manage_users_db import create_user
 
@@ -150,12 +142,7 @@ def _authenticate_password(form, username, password):
 if app.config.get("AUTHENTICATION_TYPE") in ["local", "ldap", "oidc_proxy"]:
     @login_blueprint.route('/login', methods=['GET', 'POST'])
     def login():
-<<<<<<< HEAD
-        session.permanent = True
-=======
         #session.permanent = True
-
->>>>>>> 52c04db5fbb32e8db5cd11e5788b0458a1ecc374
         if current_user.is_authenticated:
             track_activity("user is authenticated",
                     ctx_less=True, display_in_ui=False)
