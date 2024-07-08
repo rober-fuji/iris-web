@@ -493,6 +493,10 @@ def is_authentication_ldap():
     return app.config.get('AUTHENTICATION_TYPE') == "ldap"
 
 
+def is_authentication_oidc_proxy():
+    return app.config.get('AUTHENTICATION_TYPE') == "oidc_proxy"
+
+
 def regenerate_session():
     user_data = session.get('user_data', {})
 
